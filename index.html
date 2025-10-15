@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1 REP MAX CALCULATOR (INVERTED MONOCHROME)</title>
+    
+    <!-- LINK PREVIEW (SEO/Social Sharing Metadata) -->
+    <meta name="description" content="Calculate your estimated One Rep Max (1RM) using the Epley formula, and view a corresponding training percentage breakdown.">
+    
+    <!-- Load Tailwind CSS from CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Load Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Base styles for the INVERTED Monochromatic B&W scheme (White Background, Black Card) */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #ffffff; /* Pure White Background */
+            color: #000000; /* Black text on body */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+
+        /* The calculator card is crisp black */
+        .calculator-card {
+            background-color: #000000; 
+            border: 1px solid #000;
+        }
+
+        /* Input focus state uses a sharp white border */
+        input:focus {
+            outline: none;
+            border-color: #fff !important; /* White border on focus */
+            box-shadow: 0 0 0 1px #fff; /* White shadow on focus */
+        }
+
+        /* Hide number input spinners */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="antialiased"> 
+
+    <!-- Calculator Container (Inverted Monochromatic Card) -->
+    <div class="calculator-card w-full max-w-sm p-6 sm:p-8 rounded-xl shadow-2xl border-gray-900 text-white"> 
+
+        <!-- Logo/Brand Name -->
+        <header class="mb-8 text-center">
+            <div class="font-black tracking-wider leading-none">
+                <div class="text-3xl sm:text-4xl tracking-widest uppercase text-white">COACH CHRIS</div>
+                <div class="text-xs tracking-tight text-gray-400 mt-[-4px] leading-none uppercase">CIRCULAR ROOTS COACHING</div>
+                <div class="text-[10px] tracking-tighter text-gray-500 leading-none uppercase">TRAIN UNCNVNTNL</div>
+            </div>
+            <h2 class="text-xl font-semibold mt-6 text-white border-b border-gray-500 pb-3">1 Rep Max (1RM) Estimator</h2>
+        </header>
+
+        <!-- MASTER UNIT TOGGLE -->
+        <div class="flex justify-between items-center space-x-3 mb-6 pt-2 pb-4 border-b border-gray-700">
+            <span class="text-sm font-bold uppercase text-white">Weight Unit:</span>
+            <div class="flex items-center space-x-1">
+                <span id="unit-label-kg" class="text-sm font-bold text-white">KG</span>
+                <button type="button" id="master-toggle" class="relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white bg-white" role="switch" aria-checked="false">
+                    <!-- Toggle Slider: translate-x-0 (KG) or translate-x-5 (LBS) -->
+                    <span class="pointer-events-none inline-block h-5 w-5 rounded-full bg-black shadow transform ring-0 transition ease-in-out duration-200 translate-x-0"></span>
+                </button>
+                <span id="unit-label-lbs" class="text-sm font-medium text-gray-400">LBS</span>
+            </div>
+        </div>
+
+
+        <!-- Form -->
+        <form id="calculator-form" class="space-y-5">
+            
+            <!-- Weight Lifted Input Group -->
+            <div>
+                <label class="block text-sm font-medium text-gray-200 mb-2">Weight Lifted (<span id="weight-unit-label">KG</span>)</label>
+                <div id="weight_kg_group">
+                    <!-- Updated input background and text color for dark card -->
+                    <input type="number" id="weight_kg" step="0.1" placeholder="e.g. 100 kg" required class="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-lg text-white text-sm">
+                </div>
+                <div id="weight_lbs_group" class="hidden">
+                    <!-- Updated input background and text color for dark card -->
+                    <input type="number" id="weight_lbs" step="0.1" placeholder="e.g. 225 lbs" required class="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-lg text-white text-sm">
+                </div>
+            </div>
+
+            <!-- Reps Performed Input -->
+            <div>
+                <label for="reps" class="block text-sm font-medium text-gray-200 mb-2">Reps Performed (2 - 12)</label>
+                <!-- Updated input background and text color for dark card -->
+                <input type="number" id="reps" min="2" max="12" placeholder="e.g. 8" required class="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-lg text-white text-sm">
+                <p class="text-xs text-gray-500 mt-2">The Epley formula is most accurate for 12 reps or fewer.</p>
+            </div>
+
+            <!-- Calculate Button: Inverted to be white text/black background on the black card -->
+            <button type="submit" id="calculate-btn" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-lg font-bold text-black bg-white hover:bg-gray-200 transition duration-300 focus:outline-none focus:ring-4 focus:ring-white focus:ring-offset-2 focus:ring-offset-black uppercase mt-8">
+                ESTIMATE 1RM & TRAINING ZONES
+            </button>
+        </form>
+
+        <!-- Results Display: Dark background for contrast -->
+        <div id="results" class="hidden mt-8 p-6 bg-gray-900 rounded-lg border border-gray-700 shadow-inner">
+            <h3 class="text-xl font-bold text-center mb-4 uppercase text-white">Estimated 1RM Results</h3>
+            
+            <!-- Primary 1RM Result -->
+            <div class="text-center mb-6 py-4 border-b border-gray-600">
+                <p class="text-sm text-gray-400 font-medium">Your Estimated One Rep Max:</p>
+                <p class="text-4xl font-black text-white mt-1" id="final-1rm"></p>
+                <p class="text-xs text-gray-500 mt-2">(Using Epley Formula)</p>
+            </div>
+
+            <!-- Training Percentage Table -->
+            <h4 class="text-sm font-bold uppercase text-white mb-3 border-b border-white pb-2">Training Zone Breakdown</h4>
+            <div class="space-y-1" id="training-zones">
+                <!-- Data injected by JS -->
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex space-x-3 mt-6 pt-4 border-t border-gray-700">
+                <!-- Copy Button: Inverted -->
+                <button type="button" id="copy-results-btn" class="flex-1 flex items-center justify-center py-2 px-3 text-sm font-semibold text-black bg-white rounded-lg hover:bg-gray-200 transition duration-300">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"></path><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"></path></svg>
+                    Copy Results
+                </button>
+                <!-- Reset Button: Inverted -->
+                <button type="button" id="reset-btn" class="flex-1 flex items-center justify-center py-2 px-3 text-sm font-semibold text-white border border-white bg-black rounded-lg hover:bg-gray-900 transition duration-300">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 0012 4.474v3a4 4 0 113.586 6.311l-3.586 3.586L4 20"></path></svg>
+                    Reset
+                </button>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="mt-6 pt-5 border-t border-gray-700">
+                <h4 class="text-sm font-bold uppercase text-white mb-3 border-b border-white pb-2">Method & Disclaimer</h4>
+                <p class="text-xs text-gray-400">
+                    The 1RM is an estimated value calculated using the Epley formula: $1RM = W \times (1 + \frac{R}{30})$. These estimates are less accurate at higher rep ranges (over 10-12 reps). Always use caution and proper form when lifting near your maximal effort.
+                </p>
+            </div>
+        </div>
+
+    </div>
+    
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('calculator-form');
+    const resultsDiv = document.getElementById('results');
+    
+    // MASTER UNIT STATE: 'kg' (default) or 'lbs'
+    let unitSystem = 'kg'; 
+    let current1RM = 0; // Store the last calculated 1RM value
+    const masterToggle = document.getElementById('master-toggle');
+    const toggleSlider = masterToggle.querySelector('span');
+    const kgLabel = document.getElementById('unit-label-kg');
+    const lbsLabel = document.getElementById('unit-label-lbs');
+    const weightUnitLabel = document.getElementById('weight-unit-label');
+
+    // --- Unit Group Elements and Inputs ---
+    const weightKgGroup = document.getElementById('weight_kg_group');
+    const weightLbsGroup = document.getElementById('weight_lbs_group');
+    const inputWeightKg = document.getElementById('weight_kg');
+    const inputWeightLbs = document.getElementById('weight_lbs');
+    const inputReps = document.getElementById('reps');
+
+    // Standard training percentages
+    const percentages = [100, 95, 90, 85, 80, 75, 70]; 
+
+    /**
+     * Shows a temporary, non-blocking notification message.
+     */
+    function showNotification(message, type) {
+        // Updated colors for the inverted theme
+        const bgColor = type === 'success' ? '#000' : '#fff'; 
+        const textColor = type === 'success' ? 'white' : 'black';
+        const tempMessage = document.createElement('div');
+        tempMessage.textContent = message;
+        tempMessage.style.cssText = `
+            position: fixed; 
+            top: 20px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            background: ${bgColor}; 
+            color: ${textColor}; 
+            padding: 12px 20px; 
+            border-radius: 8px; 
+            z-index: 1000; 
+            font-weight: bold; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            transition: opacity 0.3s ease-in-out;
+        `;
+        document.body.appendChild(tempMessage);
+        
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            tempMessage.style.opacity = '0';
+            setTimeout(() => tempMessage.remove(), 300);
+        }, 3000);
+    }
+
+    /**
+     * Updates the UI (labels, input visibility) based on the current unit system.
+     */
+    function updateUnitUI() {
+        const isKg = unitSystem === 'kg';
+
+        // 1. Update Master Toggle Visuals
+        if (isKg) {
+            masterToggle.setAttribute('aria-checked', 'false');
+            // KG (Default) is selected -> Toggle track is white, slider is black
+            masterToggle.classList.add('bg-white'); 
+            masterToggle.classList.remove('bg-gray-300'); 
+            toggleSlider.classList.remove('translate-x-5');
+            toggleSlider.classList.add('translate-x-0');
+            
+            kgLabel.classList.add('font-bold', 'text-white');
+            kgLabel.classList.remove('font-medium', 'text-gray-400');
+            lbsLabel.classList.remove('font-bold', 'text-white');
+            lbsLabel.classList.add('font-medium', 'text-gray-400');
+        } else {
+            masterToggle.setAttribute('aria-checked', 'true');
+            // LBS is selected -> Toggle track is dark, slider is white
+            masterToggle.classList.remove('bg-white'); 
+            masterToggle.classList.add('bg-gray-600'); 
+            toggleSlider.classList.add('translate-x-5');
+            toggleSlider.classList.remove('translate-x-0'); 
+            
+            kgLabel.classList.remove('font-bold', 'text-white');
+            kgLabel.classList.add('font-medium', 'text-gray-400');
+            lbsLabel.classList.add('font-bold', 'text-white');
+            lbsLabel.classList.remove('font-medium', 'text-gray-400');
+        }
+
+        // 2. Update Labels and Visibility
+        weightUnitLabel.textContent = isKg ? 'KG' : 'LBS';
+        weightKgGroup.classList.toggle('hidden', !isKg);
+        weightLbsGroup.classList.toggle('hidden', isKg);
+
+        inputWeightKg.required = isKg;
+        inputWeightLbs.required = !isKg;
+        
+        resultsDiv.classList.add('hidden');
+    }
+
+    // Event listener for the master toggle
+    masterToggle.addEventListener('click', () => {
+        unitSystem = unitSystem === 'kg' ? 'lbs' : 'kg';
+        updateUnitUI();
+    });
+    
+    // Initial UI setup
+    updateUnitUI(); 
+
+
+    // --- Core Calculation Logic ---
+
+    /**
+     * Calculates the 1RM using the Epley formula.
+     * @param {number} weight - Weight lifted.
+     * @param {number} reps - Reps performed.
+     * @returns {number} The estimated 1RM.
+     */
+    function calculate1RM(weight, reps) {
+        // Epley Formula: 1RM = W * (1 + R/30)
+        return weight * (1 + (reps / 30));
+    }
+
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault(); 
+        
+        // 1. Gather & Validate Inputs
+        let weight, unitLabel;
+        const reps = parseInt(inputReps.value);
+        
+        if (unitSystem === 'kg') {
+            weight = parseFloat(inputWeightKg.value);
+            unitLabel = 'KG';
+        } else {
+            weight = parseFloat(inputWeightLbs.value);
+            unitLabel = 'LBS';
+        }
+
+        if (isNaN(weight) || weight <= 0 || isNaN(reps) || reps < 2 || reps > 12) {
+             showNotification('Please enter a valid positive weight and reps (2-12).', 'error');
+            return;
+        }
+
+        // 2. Calculate 1RM
+        current1RM = calculate1RM(weight, reps);
+        // Round 1RM to the nearest 0.1 for consistency
+        const final1RMValue = current1RM.toFixed(1);
+
+        // 3. Calculate Training Zones
+        const trainingZonesHtml = percentages.map(percent => {
+            // Calculate and round training weight to 1 decimal place
+            const rawTrainingWeight = current1RM * (percent / 100);
+            const trainingWeight = rawTrainingWeight.toFixed(1);
+
+            let colorClass = 'text-white';
+            if (percent === 100) {
+                 colorClass = 'font-black text-white'; // Highlight 100%
+            }
+
+            return `
+                <div class="flex justify-between items-center py-2 border-b border-gray-700 last:border-b-0">
+                    <span class="text-sm font-medium text-gray-400">${percent}% of 1RM:</span>
+                    <span class="text-base font-bold ${colorClass}">${trainingWeight} ${unitLabel}</span>
+                </div>
+            `;
+        }).join('');
+        
+        // 4. Display Results
+        document.getElementById('final-1rm').textContent = `${final1RMValue} ${unitLabel}`;
+        document.getElementById('training-zones').innerHTML = trainingZonesHtml;
+        
+        resultsDiv.classList.remove('hidden');
+        
+        // Store results for copying
+        resultsDiv.dataset.final1rm = final1RMValue;
+        resultsDiv.dataset.unit = unitLabel;
+        resultsDiv.dataset.weightLifted = weight.toFixed(1);
+        resultsDiv.dataset.reps = reps;
+        
+        // Scroll to results for better mobile UX
+        resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+
+    // --- Reset and Copy Functions ---
+
+    /**
+     * Resets the entire calculator form and hides results.
+     */
+    function resetCalculator() {
+        form.reset();
+        resultsDiv.classList.add('hidden');
+        current1RM = 0;
+        // Reset to initial KG state
+        unitSystem = 'kg';
+        updateUnitUI(); 
+        showNotification('Calculator reset successfully.', 'success');
+        // Scroll back to the top of the form
+        document.body.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    /**
+     * Copies the calculated results to the clipboard.
+     */
+    function copyResults() {
+        const final1rm = resultsDiv.dataset.final1rm;
+        const unit = resultsDiv.dataset.unit;
+        const weightLifted = resultsDiv.dataset.weightLifted;
+        const reps = resultsDiv.dataset.reps;
+
+        if (!final1rm) {
+            showNotification('Please calculate results first.', 'error');
+            return;
+        }
+
+        let textToCopy = `
+COACH CHRIS | 1RM Estimation
+--------------------------------
+Input: ${weightLifted} ${unit} for ${reps} reps
+Estimated 1RM: ${final1rm} ${unit} (Epley)
+
+Training Zones:
+`;
+        // Add zone breakdown
+        percentages.forEach(percent => {
+            const trainingWeight = (current1RM * (percent / 100)).toFixed(1);
+            textToCopy += `${percent}%: ${trainingWeight} ${unit}\n`;
+        });
+        
+        textToCopy = textToCopy.trim();
+
+        const textarea = document.createElement('textarea');
+        textarea.value = textToCopy;
+        textarea.style.position = 'fixed'; 
+        textarea.style.opacity = '0'; 
+        document.body.appendChild(textarea);
+        textarea.select();
+
+        try {
+            document.execCommand('copy');
+            showNotification('1RM results copied to clipboard!', 'success');
+        } catch (err) {
+            console.error('Could not copy text: ', err);
+            showNotification('Failed to copy results.', 'error');
+        } finally {
+            document.body.removeChild(textarea);
+        }
+    }
+
+    // Attach event listeners for buttons
+    document.getElementById('reset-btn').addEventListener('click', resetCalculator);
+    document.getElementById('copy-results-btn').addEventListener('click', copyResults);
+});
+</script>
+
+</body>
+</html>
+
